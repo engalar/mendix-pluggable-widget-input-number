@@ -1,14 +1,36 @@
-import { createElement, useMemo } from "react";
-import { GraphContainerProps } from "../typings/InputNumberProps";
+import { InputNumber } from 'antd';
+import { createElement, useCallback, useEffect, useState } from "react";
+import { InputNumberContainerProps } from "../typings/InputNumberProps";
 import { ValueStatus } from 'mendix';
 
-export default function (props: GraphContainerProps) {
-    console.log(props);
-    const value = useMemo(() => {
-        if (props.attribute && props.attribute.status === ValueStatus.Available) {
-            return props.attribute.value;
-        }
-    }, [props.attribute])
+import './ui/index.scss';
+import Big from 'big.js';
 
-    return <div>hello {props.sampleText} and your value is {value}</div>;
+export default function (props: InputNumberContainerProps) {
+    const [value, setvalue] = useState<Number>();
+    useEffect(() => {
+        if (props.attribute && props.attribute.status === ValueStatus.Available) {
+            setvalue(Number(props.attribute.value));
+        }
+    }, [props.attribute]);
+
+    const onChange = useCallback(
+        (e: number) => {
+            if (props.attribute) {
+                props.attribute.setValue(new Big(e));
+            }
+        },
+        [props.attribute],
+    )
+
+    return <InputNumber
+        value={value}
+        defaultValue={0}
+        step={0.01}
+        min={0}
+        max={1}
+        formatter={(value: any) => `${value * 100}%`}
+        parser={(value: string) => Number(value.replace('%', '')) / 100}
+        onChange={onChange}
+    />;
 }
